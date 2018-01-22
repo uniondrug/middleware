@@ -153,7 +153,7 @@ class MiddlewareManager extends Injectable
 
         // 控制器的中间件
         if (isset($this->middlewareGroup[$controllerName])) {
-            $middlewares = array_unique(array_merge($middlewares, $this->middlewareGroup[$controllerName]));
+            $middlewares = array_merge($middlewares, $this->middlewareGroup[$controllerName]);
         }
 
         // 读取控制器上是否有Middleware注解
@@ -170,7 +170,7 @@ class MiddlewareManager extends Injectable
         // 方法的中间件
         $groupName = $controllerName . '::' . $actionMethod;
         if (isset($this->middlewareGroup[$groupName])) {
-            $middlewares = array_unique(array_merge($middlewares, $this->middlewareGroup[$groupName]));
+            $middlewares = array_merge($middlewares, $this->middlewareGroup[$groupName]);
         }
 
         // 读取方法上是否有Middleware注解
@@ -185,6 +185,6 @@ class MiddlewareManager extends Injectable
         }
 
         // 返回当前 handler/action 对应的中间件名称列表
-        return $middlewares;
+        return array_unique($middlewares);
     }
 }
