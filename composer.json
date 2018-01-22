@@ -1,0 +1,22 @@
+{
+  "name": "uniondrug/middleware",
+  "description": "Uniondrug 框架中间件",
+  "license": "MIT",
+  "type": "library",
+  "authors": [
+    {
+      "name": "Uniondrug R&D Team",
+      "email": "dev@uniondrug.cn"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-phalcon": "^3.2",
+    "uniondrug/framework": "^1.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "UniondrugMiddleware\\": "src"
+    }
+  }
+}
