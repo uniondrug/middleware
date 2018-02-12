@@ -10,7 +10,7 @@
 ## 安装
 
 ```
-$ composer requre uniondrug/middleware
+$ composer require uniondrug/middleware
 ```
 
 ## 使用
