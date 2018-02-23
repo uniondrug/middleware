@@ -150,3 +150,24 @@ class IndexController extends Controller
 比如上面例子里面的`indexAction`被调用时，`中间件`的执行顺序是：
 
 test1 -> test5 -> test2 -> test4 -> test3
+
+
+### 前置调用 & 后置调用
+
+> NOTE：`Phalcon`的Request对象不同于Psr的HttpRequest对象，它只是PHP原生超全局变量$_GET/$_POST/$_SERVER/$_REQUEST的封装，所以如果想在Middleware中对请求对象进行
+改写并且让他影响后续使用，那么直接操作超全局变量。
+
+```
+class Test1Middleware extends Middleware
+{
+    public function handle(RequestInterface $request, DelegateInterface $next)
+    {
+        echo "Test1.0\n"; // 在 $next($request) 之前的代码，将在请求被最终Controller::Action处理之前调用
+        $_POST['added_var'] = 'new value'; // 改写请求参数，往Request中添加一个新的POST参数。
+                                           // 这样下一个Middleware乃至Controller::Action中使用 `$request` 对象的 `getPost()` 方法就能获取到新的参数值了。
+        $response = $next($request);
+        echo "Test1.1\n"; // 在 $next($request) 之后的代码，将在请求被最终Controller::Action处理之后调用
+        return $response;
+    }
+}
+```
