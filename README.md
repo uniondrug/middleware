@@ -1,4 +1,4 @@
-# UniondrugMiddleware 中间件组件
+# Uniondrug Middleware 中间件组件
 
 基于Phalcon的uniondrug/framework项目中，增加中间件处理流程的支持。
 
@@ -25,7 +25,7 @@ return [
     'default' => [
         ...
         'providers'           => [
-            \UniondrugMiddleware\MiddlewareServiceProvider::class,
+            \Uniondrug\Middleware\MiddlewareServiceProvider::class,
         ],
         ...
     ],
@@ -55,7 +55,7 @@ return [
 
 ### 开发中间件
 
-创建中间件。中间件必须从`UniondrugMiddleware\Middleware`继承。实现`handle`方法。该方法有两个参数：`request`是Phalcon的`Phalcon\Http\Request`对象，`next`是下一个中间件代理。
+创建中间件。中间件必须从`Uniondrug\Middleware\Middleware`继承。实现`handle`方法。该方法有两个参数：`request`是Phalcon的`Phalcon\Http\Request`对象，`next`是下一个中间件代理。
 在处理过程中，可以直接返回一个`Phalcon\Http\Response`对象，终止后续的中间件，或者返回下一个中间件代理的处理结果（链式传递）。
 
 ```php
@@ -68,8 +68,8 @@ return [
 namespace App\Middlewares;
 
 use Phalcon\Http\RequestInterface;
-use UniondrugMiddleware\DelegateInterface;
-use UniondrugMiddleware\Middleware;
+use Uniondrug\Middleware\DelegateInterface;
+use Uniondrug\Middleware\Middleware;
 
 class Test1Middleware extends Middleware
 {

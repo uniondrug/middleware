@@ -4,11 +4,11 @@
  *
  */
 
-namespace UniondrugMiddleware\Middlewares;
+namespace Uniondrug\Middleware\Middlewares;
 
 use Phalcon\Http\RequestInterface;
-use UniondrugMiddleware\DelegateInterface;
-use UniondrugMiddleware\Middleware;
+use Uniondrug\Middleware\DelegateInterface;
+use Uniondrug\Middleware\Middleware;
 
 class CorsMiddleware extends Middleware
 {

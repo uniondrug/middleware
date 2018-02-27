@@ -6,7 +6,7 @@
  * @date   2018-01-20
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
 use Phalcon\Di\Injectable;
 use Phalcon\Text;
@@ -55,7 +55,7 @@ class MiddlewareManager extends Injectable
      * 注册中间件
      *
      * @param string                                          $name
-     * @param string|\UniondrugMiddleware\MiddlewareInterface $definition
+     * @param string|\Uniondrug\Middleware\MiddlewareInterface $definition
      */
     public function register($name, $definition)
     {
