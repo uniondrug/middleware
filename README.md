@@ -171,3 +171,10 @@ class Test1Middleware extends Middleware
     }
 }
 ```
+
+### 内置中间件
+
+组件自带了几个实用的中间件，在`middlewares.php`配置文件中增加配置即可使用。
+
+* `cors` 跨域资源共享
+* `trace` 跟踪服务
