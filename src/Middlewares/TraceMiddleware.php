@@ -47,16 +47,23 @@ class TraceMiddleware extends Middleware
         $_SERVER['HTTP_X_SPAN_ID'] = $spanId;
 
         // 4. 正常处理后续事宜
-        $response = $next($request);
-        $response->setHeader('X_SPAN_ID', $spanId);
+        $exception = null;
+        $error = '';
+        try {
+            $response = $next($request);
+            $response->setHeader('X_SPAN_ID', $spanId);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            $exception = $e;
+        }
 
         // 5. 记录时间
         $sTime = microtime(1);
         $tTime = $sTime - $rTime;
 
         // 5. 记录信息
-        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] traceId=%s, spanId=%s, pSpanId=%s, ss=%s, sr=%s, t=%s, req=%s",
-            $traceId, $spanId, $parentSpanId, $sTime, $rTime, $tTime, $req
+        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] traceId=%s, spanId=%s, pSpanId=%s, ss=%s, sr=%s, t=%s, req=%s, error=%s",
+            $traceId, $spanId, $parentSpanId, $sTime, $rTime, $tTime, $req, $error
         ));
 
         // 6. 发送到中心
@@ -73,6 +80,7 @@ class TraceMiddleware extends Middleware
                     'sr'           => $rTime,           // ServerReceive, 收到请求的时间
                     'ss'           => $sTime,           // ServerSend，完成后发送的时间
                     'req'          => $req,             // 请求的路径
+                    'error'        => $error,
                 ]);
             }
         } catch (\Exception $e) {
@@ -80,6 +88,10 @@ class TraceMiddleware extends Middleware
         }
 
         // 7. 返回
-        return $response;
+        if ($exception !== null) {
+            throw $exception;
+        } else {
+            return $response;
+        }
     }
 }
