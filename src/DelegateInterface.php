@@ -4,7 +4,7 @@
  *
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\ResponseInterface;

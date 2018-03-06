@@ -7,7 +7,7 @@
  *
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
 use LogicException;
 use Phalcon\Di\Injectable;

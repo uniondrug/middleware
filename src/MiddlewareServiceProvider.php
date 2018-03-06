@@ -4,7 +4,7 @@
  *
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
 use Phalcon\Di\ServiceProviderInterface;
 

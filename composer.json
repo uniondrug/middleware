@@ -10,11 +10,11 @@
     }
   ],
   "require": {
-    "uniondrug/framework": "^1.0|^2.0"
+    "uniondrug/framework": "^2.0"
   },
   "autoload": {
     "psr-4": {
-      "UniondrugMiddleware\\": "src/"
+      "Uniondrug\\Middleware\\": "src/"
     }
   }
 }

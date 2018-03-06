@@ -6,11 +6,11 @@
  * @date   2018-01-22
  */
 
-namespace UniondrugMiddleware\Middlewares;
+namespace Uniondrug\Middleware\Middlewares;
 
 use Phalcon\Http\RequestInterface;
-use UniondrugMiddleware\DelegateInterface;
-use UniondrugMiddleware\Middleware;
+use Uniondrug\Middleware\DelegateInterface;
+use Uniondrug\Middleware\Middleware;
 
 class DispatcherMiddleware extends Middleware
 {
@@ -45,7 +45,7 @@ class DispatcherMiddleware extends Middleware
 
     /**
      * @param \Phalcon\Http\RequestInterface         $request
-     * @param \UniondrugMiddleware\DelegateInterface $next
+     * @param \Uniondrug\Middleware\DelegateInterface $next
      *
      * @return mixed|\Phalcon\Http\ResponseInterface
      */

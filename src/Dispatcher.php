@@ -7,10 +7,10 @@
  *
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
 use Phalcon\Mvc\Dispatcher as PhalconDispatcher;
-use UniondrugMiddleware\Middlewares\DispatcherMiddleware;
+use Uniondrug\Middleware\Middlewares\DispatcherMiddleware;
 
 class Dispatcher extends PhalconDispatcher
 {

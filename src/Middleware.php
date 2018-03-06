@@ -4,12 +4,12 @@
  *
  */
 
-namespace UniondrugMiddleware;
+namespace Uniondrug\Middleware;
 
-use Phalcon\Di\Injectable;
 use Phalcon\Http\RequestInterface;
 use Phalcon\Http\Response;
 use Phalcon\Http\ResponseInterface;
+use Uniondrug\Framework\Injectable;
 
 abstract class Middleware extends Injectable implements MiddlewareInterface
 {
