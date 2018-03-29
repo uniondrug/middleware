@@ -18,18 +18,29 @@ use Uniondrug\Middleware\Middleware;
 
 class TraceMiddleware extends Middleware
 {
-    const TRACE_ID = 'UDS_TRACE_ID';
+    const TRACE_ID = 'X_TRACE_ID';
     const SPAN_ID = 'UDS_SPAN_ID';
     const PARENT_SPAN_ID = 'UDS_PARENT_SPAN_ID';
 
+    /**
+     * @param \Phalcon\Http\RequestInterface          $request
+     * @param \Uniondrug\Middleware\DelegateInterface $next
+     *
+     * @return \Phalcon\Http\ResponseInterface
+     * @throws \Exception
+     */
     public function handle(RequestInterface $request, DelegateInterface $next)
     {
-        // 0. 从请求中获取跟踪信息，或者初始化一个请求
+        // 0. 请求基本信息
         $rTime = microtime(1);
-        $req = $request->getHeader('REQUEST_URI');
         $rip = $request->getClientAddress(true);
+        $req = $request->getHeader('REQUEST_URI');
+        $query = $request->getHeader('QUERY_STRING');
+        if (!empty($query)) {
+            $req = $req . '?' . $query;
+        }
 
-        // 1. 跟踪链ID
+        // 1. 获取上游跟踪链ID，或者启动跟踪ID
         $traceId = $request->getHeader('X_TRACE_ID');
         if (!$traceId) {
             $traceId = $this->security->getRandom()->hex(10);
@@ -42,16 +53,19 @@ class TraceMiddleware extends Middleware
             $parentSpanId = '';
         }
 
-        // 3. 重新设置节点ID
+        // 3. 设置节点ID，生成当前节点ID，并放入当前环境，便于往下传递
         $spanId = $this->security->getRandom()->hex(10);
         $_SERVER['HTTP_X_SPAN_ID'] = $spanId;
 
         // 4. 正常处理后续事宜
         $exception = null;
-        $error = '';
+        $error = '-';
         try {
             $response = $next($request);
-            $response->setHeader('X_SPAN_ID', $spanId);
+            if ($response instanceof ResponseInterface) {
+                $response->setHeader('X-TRACE-ID', $traceId);
+                $response->setHeader('X-SPAN-ID', $spanId);
+            }
         } catch (\Exception $e) {
             $error = $e->getMessage();
             $exception = $e;
