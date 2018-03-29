@@ -8,8 +8,14 @@
 
 namespace Uniondrug\Middleware;
 
-use Phalcon\Di\Injectable;
+use Phalcon\Config;
 use Phalcon\Text;
+use Uniondrug\Framework\Injectable;
+use Uniondrug\Middleware\Middlewares\CacheMiddleware;
+use Uniondrug\Middleware\Middlewares\CorsMiddleware;
+use Uniondrug\Middleware\Middlewares\FaviconIcoMiddleware;
+use Uniondrug\Middleware\Middlewares\PoweredByMiddleware;
+use Uniondrug\Middleware\Middlewares\TraceMiddleware;
 
 /**
  * Class MiddlewareManager
@@ -23,7 +29,13 @@ class MiddlewareManager extends Injectable
      *
      * @var array
      */
-    protected $definitions = [];
+    protected $definitions = [
+        'cors'    => CorsMiddleware::class,
+        'trace'   => TraceMiddleware::class,
+        'cache'   => CacheMiddleware::class,
+        'favicon' => FaviconIcoMiddleware::class,
+        'powered' => PoweredByMiddleware::class,
+    ];
 
     /**
      * 中间件使用映射。
@@ -48,13 +60,13 @@ class MiddlewareManager extends Injectable
      */
     public function __construct($definitions = [])
     {
-        $this->definitions = $definitions;
+        $this->definitions = array_merge($this->definitions, $definitions);
     }
 
     /**
      * 注册中间件
      *
-     * @param string                                          $name
+     * @param string                                           $name
      * @param string|\Uniondrug\Middleware\MiddlewareInterface $definition
      */
     public function register($name, $definition)
@@ -62,6 +74,11 @@ class MiddlewareManager extends Injectable
         $this->definitions[$name] = $definition;
     }
 
+    /**
+     * @param $name
+     *
+     * @return mixed
+     */
     public function get($name)
     {
         return $this->definitions[$name];
@@ -119,6 +136,10 @@ class MiddlewareManager extends Injectable
         return $this;
     }
 
+    /**
+     * @param $groupName
+     * @param $middlewares
+     */
     protected function bindToGroup($groupName, $middlewares)
     {
         if (!is_array($middlewares)) {
@@ -149,7 +170,12 @@ class MiddlewareManager extends Injectable
     public function getMiddlewares($handler, $actionMethod)
     {
         $controllerName = get_class($handler);
-        $middlewares = [];
+
+        // 全局中间件
+        $middlewares = $this->config->path('middleware.global', []);
+        if ($middlewares instanceof Config) {
+            $middlewares = $middlewares->toArray();
+        }
 
         // 控制器的中间件
         if (isset($this->middlewareGroup[$controllerName])) {

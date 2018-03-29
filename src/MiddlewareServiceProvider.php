@@ -6,6 +6,7 @@
 
 namespace Uniondrug\Middleware;
 
+use Phalcon\Config;
 use Phalcon\Di\ServiceProviderInterface;
 
 class MiddlewareServiceProvider implements ServiceProviderInterface
@@ -15,7 +16,10 @@ class MiddlewareServiceProvider implements ServiceProviderInterface
         $di->setShared(
             'middlewareManager',
             function () {
-                $middlewares = $this->getConfig()->path('middlewares', []);
+                $middlewares = $this->getConfig()->path('middleware.middlewares', []);
+                if ($middlewares instanceof Config) {
+                    $middlewares = $middlewares->toArray();
+                }
 
                 return new MiddlewareManager($middlewares);
             }

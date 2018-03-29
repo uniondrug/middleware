@@ -27,7 +27,7 @@ class Dispatcher extends PhalconDispatcher
     public function callActionMethod($handler, $actionMethod, ?array $params = [])
     {
         // 中间件管理器
-        if ($this->getDi()->has('middlewareManager')) {
+        if ($this->getDI()->has('middlewareManager')) {
             $middlewareManager = $this->getDI()->getShared('middlewareManager');
         } else {
             $middlewareManager = new MiddlewareManager();
@@ -61,6 +61,6 @@ class Dispatcher extends PhalconDispatcher
         // Default Dispatcher method
         $middlewareDispatcher->before(new DispatcherMiddleware($handler, $actionMethod, $params));
 
-        return $middlewareDispatcher->dispatch($this->getDi()->getRequest());
+        return $middlewareDispatcher->dispatch($this->getDI()->getRequest());
     }
 }
