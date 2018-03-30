@@ -1,6 +1,6 @@
 {
   "name": "uniondrug/middleware",
-  "description": "Uniondrug 框架中间件",
+  "description": "Uniondrug Middleware Component for uniondrug/framework",
   "license": "MIT",
   "type": "library",
   "authors": [

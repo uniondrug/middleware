@@ -43,7 +43,7 @@ return [
  */
 return [
     'default' => [
-        // 注册项目定义的中间件
+        // 应用定义的中间件
         'middlewares' => [
             'test1' => \App\Middlewares\Test1Middleware::class,
             'test2' => \App\Middlewares\Test2Middleware::class,
@@ -52,17 +52,22 @@ return [
             'test5' => \App\Middlewares\Test5Middleware::class,
         ],
 
-        // 全局启用的中间件
-        'globals' => [
-            'cors', 'powered', 'favicon', 'trace', 'cache'
+        // 全局中间件，会应用在全部路由，优先级在应用定义之前
+        'global'      => [
+            'cors', 'cache', 'favicon', 'trace',
         ],
 
-        // 以下是各个中间件的配置参数
-        'powered_by' => 'Uniondrug',
-        'cache' => [
+        // 全局中间件，会应用在全部路由，优先级在应用定义之后
+        'globalAfter' => [
+            'powered',
+        ],
+
+        // 以下是中间件用到的配置参数
+        'cache'       => [
             'lifetime' => 60,
-        ]
-    ]
+        ],
+        'powered_by'  => 'Un',
+    ],
 ];
 ```
 
@@ -134,18 +139,18 @@ use Phalcon\Mvc\Controller;
  * Class IndexController
  *
  * @package App\Controllers
- * @Middleware('test2')
+ * @Middleware('test1')
  */
 class IndexController extends Controller
 {
     public function beforeExecuteRoute($dispatcher)
     {
-        $this->middlewareManager->bind($this, ['test3', 'test4']);
-        $this->middlewareManager->bind($this, ['test5'], ['only' => ['indexAction']]);
+        $this->middlewareManager->bind($this, ['test2']);
+        $this->middlewareManager->bind($this, ['test3'], ['only' => ['indexAction']]);
     }
 
     /**
-     * @Middleware('test1')
+     * @Middleware('test4', 'test5')
      */
     public function indexAction()
     {
@@ -163,14 +168,24 @@ class IndexController extends Controller
 
 ### 中间件调用的顺序
 
-`Action方法`的注解定义的中间件 -> `bind()`方法绑定到的`Action方法`上的中间件 -> `控制器`的注解上定义的中间件 -> `bind()`方法绑定到`控制器`上的中间件。
+-  -> 配置文件定义的`global`定义的中间件
+-  -> `bind()`方法绑定到`控制器`上的中间件
+-  -> `控制器`的注解上定义的中间件
+-  -> `bind()`方法绑定到的`Action方法`上的中间件
+-  -> `Action方法`的注解定义的中间件
+-  -> 配置文件定义的`globalAfter`定义的中间件
 
 `bind()`方法定义超过一个`中间件`时，从后到先倒序执行。
 
 比如上面例子里面的`indexAction`被调用时，`中间件`的执行顺序是：
 
-test1 -> test5 -> test2 -> test4 -> test3
+`前置调用`：
 
+* test2 -> test1 -> test3 -> test4 -> test5
+
+`后置调用`
+
+* test5 -> test4 -> test3 -> test1 -> test2
 
 ### 前置调用 & 后置调用
 
