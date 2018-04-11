@@ -17,9 +17,9 @@ class CorsMiddleware extends Middleware
     {
         $response = $next($request);
         if ($response instanceof ResponseInterface) {
-            $response->setHeader('Access-Control-Allow-Headers', 'Authorization, Origin, X-Requested-With, Content-Type, Accept');
-            $response->setHeader('Access-Control-Allow-Origin', '*');
-            $response->setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, OPTIONS, DELETE');
+            $response->setHeader('Access-Control-Allow-Origin', $request->getHeader('Origin'));
+            $response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Cookie');
+            $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS');
         }
 
         return $response;
