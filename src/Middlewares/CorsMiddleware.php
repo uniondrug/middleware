@@ -16,7 +16,7 @@ class CorsMiddleware extends Middleware
         try {
             $response = $next($request);
         } catch(\Exception $e) {
-            $response = $this->response;
+            $response = $this->serviceServer->withError($e->getMessage(), $e->getCode());
         }
         if ($response instanceof ResponseInterface) {
             $response->setHeader('Access-Control-Allow-Origin', $request->getHeader('Origin'));
