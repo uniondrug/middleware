@@ -18,10 +18,6 @@ use Uniondrug\Middleware\Middleware;
 
 class TraceMiddleware extends Middleware
 {
-    const TRACE_ID = 'X_TRACE_ID';
-    const SPAN_ID = 'UDS_SPAN_ID';
-    const PARENT_SPAN_ID = 'UDS_PARENT_SPAN_ID';
-
     /**
      * @param \Phalcon\Http\RequestInterface          $request
      * @param \Uniondrug\Middleware\DelegateInterface $next
@@ -35,6 +31,7 @@ class TraceMiddleware extends Middleware
         $rTime = microtime(1);
         $rip = $request->getClientAddress(true);
         $req = $request->getHeader('REQUEST_URI');
+        $rua = $request->getUserAgent();
         $query = $request->getHeader('QUERY_STRING');
         if (!empty($query)) {
             $req = $req . '?' . $query;
@@ -76,8 +73,8 @@ class TraceMiddleware extends Middleware
         $tTime = $sTime - $rTime;
 
         // 5. 记录信息
-        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] traceId=%s, spanId=%s, pSpanId=%s, ss=%s, sr=%s, t=%s, req=%s, error=%s",
-            $traceId, $spanId, $parentSpanId, $sTime, $rTime, $tTime, $req, $error
+        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] traceId=%s, spanId=%s, pSpanId=%s, ss=%s, sr=%s, t=%s, req=%s, ua=%s, error=%s",
+            $traceId, $spanId, $parentSpanId, $sTime, $rTime, $tTime, $req, $rua, $error
         ));
 
         // 6. 发送到中心
@@ -93,6 +90,7 @@ class TraceMiddleware extends Middleware
                     'service'      => $this->config->path('app.appName', 'UniondrugService'), // 当前服务的名称，在app.conf里面配置
                     'sr'           => $rTime,           // ServerReceive, 收到请求的时间
                     'ss'           => $sTime,           // ServerSend，完成后发送的时间
+                    'ua'           => $rua,              // UserAgent
                     'req'          => $req,             // 请求的路径
                     'error'        => $error,
                 ]);
