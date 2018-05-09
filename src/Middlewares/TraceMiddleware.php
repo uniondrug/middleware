@@ -28,24 +28,56 @@ class TraceMiddleware extends Middleware
     public function handle(RequestInterface $request, DelegateInterface $next)
     {
         // 0. 请求基本信息
+        $service = $this->config->path('app.appName', 'UniondrugService');
         $rTime = microtime(1);
+        $method = $request->getMethod();
         $rip = $request->getClientAddress(true);
-        $req = $request->getHeader('REQUEST_URI');
+        $req = $request->getServer('REQUEST_URI');
         $rua = $request->getUserAgent();
         $query = $request->getHeader('QUERY_STRING');
+        $host = $request->getHeader('host');
+        $port = $request->getServer('SERVER_PORT');
+        $proto = $request->getServer('SERVER_PROTOCOL');
+
+        $scheme = $request->getServer('REQUEST_SCHEME');
+        if (!$scheme) {
+            if (!empty($port) && $port == '443') {
+                $scheme = 'https';
+            } else if (!empty($port) && $port == '80') {
+                $scheme = 'http';
+            } else  if (!empty($proto)){
+                $scheme = explode('/', $proto)[0];
+            } else {
+                $scheme = 'http';
+            }
+        } else {
+            $scheme = strtolower($scheme);
+        }
+
+        $requestUri = sprintf("%s://%s", $scheme, $host);
+        if (!empty($port)) {
+            if (('https' === $scheme && '443' == $port) || ('http' === $scheme && '80' == $port)) {
+                //
+            } else {
+                $requestUri = $requestUri . ':' . $port;
+            }
+        }
+        if (!empty($req)) {
+            $requestUri = $requestUri . rtrim($req, '/');
+        }
         if (!empty($query)) {
-            $req = $req . '?' . $query;
+            $requestUri = $requestUri . '?' . $query;
         }
 
         // 1. 获取上游跟踪链ID，或者启动跟踪ID
-        $traceId = $request->getHeader('X_TRACE_ID');
+        $traceId = $request->getHeader('X-TRACE-ID');
         if (!$traceId) {
             $traceId = $this->security->getRandom()->hex(10);
             $_SERVER['HTTP_X_TRACE_ID'] = $traceId;
         }
 
         // 2. 保存上一个节点ID
-        $parentSpanId = $request->getHeader('X_SPAN_ID');
+        $parentSpanId = $request->getHeader('X-SPAN-ID');
         if (!$parentSpanId) { // 请求的起点
             $parentSpanId = '';
         }
@@ -56,9 +88,15 @@ class TraceMiddleware extends Middleware
 
         // 4. 正常处理后续事宜
         $exception = null;
-        $error = '-';
+        $error = '';
+        $statusCode = '';
         try {
             $response = $next($request);
+
+            $statusCode = $response->getStatusCode();
+            if (!$statusCode) {
+                $statusCode = '200';
+            }
             if ($response instanceof ResponseInterface) {
                 $response->setHeader('X-TRACE-ID', $traceId);
                 $response->setHeader('X-SPAN-ID', $spanId);
@@ -73,30 +111,34 @@ class TraceMiddleware extends Middleware
         $tTime = $sTime - $rTime;
 
         // 5. 记录信息
-        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] traceId=%s, spanId=%s, pSpanId=%s, ss=%s, sr=%s, t=%s, req=%s, ua=%s, error=%s",
-            $traceId, $spanId, $parentSpanId, $sTime, $rTime, $tTime, $req, $rua, $error
+        $this->di->getLogger('trace')->debug(sprintf("[TraceMiddleware] service=%s, traceId=%s, spanId=%s, pSpanId=%s, sr=%s, ss=%s, t=%s, method=%s, req=%s, statusCode=%s, ua=%s, error=%s",
+            $service, $traceId, $spanId, $parentSpanId, $rTime, $sTime, $tTime, $method, $requestUri, $statusCode, $rua, $error
         ));
 
         // 6. 发送到中心
-        try {
-            if ($this->di->has('traceClient')) {
-                $this->traceClient->send([
-                    'traceId'      => $traceId,         // traceId 每个请求的唯一ID
-                    'parentSpanId' => $parentSpanId,    // parentId 上一级节点的spanId
-                    'spanId'       => $spanId,          // id 当前节点的spanId
-                    'timestamp'    => $rTime,           // timestamp 开始时间，时间戳
-                    'duration'     => $tTime,           // duration 耗时
-                    'ip'           => $rip,             // 请求方的IP地址
-                    'service'      => $this->config->path('app.appName', 'UniondrugService'), // 当前服务的名称，在app.conf里面配置
-                    'sr'           => $rTime,           // ServerReceive, 收到请求的时间
-                    'ss'           => $sTime,           // ServerSend，完成后发送的时间
-                    'ua'           => $rua,              // UserAgent
-                    'req'          => $req,             // 请求的路径
-                    'error'        => $error,
-                ]);
+        if ($this->config->path('trace.enable', false)) {
+            try {
+                if ($this->di->has('traceClient')) {
+                    $this->traceClient->send([
+                        'traceId'      => $traceId,         // traceId 每个请求的唯一ID
+                        'parentSpanId' => $parentSpanId,    // parentId 上一级节点的spanId
+                        'spanId'       => $spanId,          // id 当前节点的spanId
+                        'timestamp'    => $rTime,           // timestamp 开始时间，时间戳
+                        'duration'     => $tTime,           // duration 耗时
+                        'ip'           => $rip,             // 请求方的IP地址
+                        'service'      => $service, // 当前服务的名称，在app.conf里面配置
+                        'sr'           => $rTime,           // ServerReceive, 收到请求的时间
+                        'ss'           => $sTime,           // ServerSend，完成后发送的时间
+                        'ua'           => $rua,              // UserAgent
+                        'method'       => $method,
+                        'req'          => $requestUri,             // 请求的路径
+                        'statusCode'   => $statusCode,
+                        'error'        => $error,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $this->di->getLogger('trace')->error(sprintf("[TraceMiddleware] Send to trace server failed: %s", $e->getMessage()));
             }
-        } catch (\Exception $e) {
-            $this->di->getLogger('trace')->error(sprintf("[TraceMiddleware] Send to trace server failed: %s", $e->getMessage()));
         }
 
         // 7. 返回
