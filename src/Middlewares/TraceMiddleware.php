@@ -30,7 +30,7 @@ class TraceMiddleware extends Middleware
         // 0. 请求基本信息
         $service = $this->config->path('app.appName', 'UniondrugService');
         $rTime = microtime(1);
-        $method = $request->getMethod();
+        $method = $request->getMethodReplacement();
         $rip = $request->getClientAddress(true);
         $req = $request->getServer('REQUEST_URI');
         $rua = $request->getUserAgent();
@@ -38,6 +38,8 @@ class TraceMiddleware extends Middleware
         $host = $request->getHeader('host');
         $port = $request->getServer('SERVER_PORT');
         $proto = $request->getServer('SERVER_PROTOCOL');
+
+        return $next($request);
 
         $scheme = $request->getServer('REQUEST_SCHEME');
         if (!$scheme) {
@@ -105,6 +107,8 @@ class TraceMiddleware extends Middleware
             $error = $e->getMessage();
             $exception = $e;
         }
+
+        return $response;
 
         // 5. 记录时间
         $sTime = microtime(1);

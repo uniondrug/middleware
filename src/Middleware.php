@@ -30,6 +30,8 @@ abstract class Middleware extends Injectable implements MiddlewareInterface
      */
     public function process(RequestInterface $request, DelegateInterface $next)
     {
+        $class = get_class($this);
+        \logger('middleware')->debug(sprintf('begin middleware %s', $class));
         try {
             $response = call_user_func_array([$this, 'handle'], [$request, $next]);
             if ($response === false || $response instanceof ResponseInterface) {
@@ -41,6 +43,7 @@ abstract class Middleware extends Injectable implements MiddlewareInterface
 
             return $response;
         } catch (\Exception $exception) {
+            \logger('middleware')->debug(sprintf('call middleware %s failed: %s', $class, $exception->getMessage()));
             throw $exception;
         }
     }
