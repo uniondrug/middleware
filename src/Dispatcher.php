@@ -15,7 +15,10 @@ use Uniondrug\Middleware\Middlewares\DispatcherMiddleware;
 class Dispatcher extends PhalconDispatcher
 {
     /**
-     * @desc   重写 callActionMethod 方法
+     * NOTE: ?array 参数前面的?是PHP7.1的新特性，需要PHP7.1的支持，否则会报错。
+     * NOTE: 本Middleware实现，会在Controller的beforeExecuteRoute() 钩子之后执行。
+     *
+     * @desc   重写 callActionMethod 方法。通过该方法的改写，嵌入中间件的处理流程。
      * @author limx
      *
      * @param mixed  $handler
